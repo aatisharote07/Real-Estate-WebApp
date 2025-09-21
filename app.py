@@ -124,16 +124,28 @@ def analytics():
     # Convert numpy arrays to lists for JSON serialization
     geomap_json = json.dumps(geomap_fig, cls=plotly.utils.PlotlyJSONEncoder)
     
-    # Create wordcloud
-    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(feature_text)
-    img = io.BytesIO()
-    plt.figure(figsize=(10, 5))
-    plt.imshow(wordcloud, interpolation='bilinear')
-    plt.axis("off")
-    plt.savefig(img, format='png', bbox_inches='tight')
-    img.seek(0)
-    wordcloud_url = base64.b64encode(img.getvalue()).decode()
-    plt.close()
+    # Create wordcloud with fallback
+    try:
+        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(feature_text)
+        img = io.BytesIO()
+        plt.figure(figsize=(10, 5))
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis("off")
+        plt.savefig(img, format='png', bbox_inches='tight')
+        img.seek(0)
+        wordcloud_url = base64.b64encode(img.getvalue()).decode()
+        plt.close()
+    except Exception as e:
+        print(f"WordCloud error: {e}")
+        # Create a simple text-based fallback
+        img = io.BytesIO()
+        plt.figure(figsize=(10, 5))
+        plt.text(0.5, 0.5, 'WordCloud unavailable', ha='center', va='center', fontsize=20)
+        plt.axis("off")
+        plt.savefig(img, format='png', bbox_inches='tight')
+        img.seek(0)
+        wordcloud_url = base64.b64encode(img.getvalue()).decode()
+        plt.close()
     
     return render_template('analytics.html', 
                          geomap=geomap_json, 
