@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="text-center mb-4 text-white">
+        <i class="fas fa-star"></i> Property Recommendations
+    </h2>
+
+    <div class="row">
+        <!-- Location Search -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-search-location text-primary"></i> Search by Location
+                    </h5>
+                    
+                    <form id="locationForm">
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <select class="form-select" id="location" name="location" required>
+                                <option value="">Choose Location</option>
+                                {% for location in locations %}
+                                <option value="{{ location }}">{{ location }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Radius (km)</label>
+                            <input type="number" class="form-control" id="radius" name="radius" 
+                                   placeholder="Enter radius" min="1" max="50" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-search"></i> Search Properties
+                        </button>
+                    </form>
+
+                    <div id="locationLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Searching...</p>
+                    </div>
+
+                    <div id="locationResults" class="mt-4" style="display: none;">
+                        <h6>Properties Found:</h6>
+                        <div id="locationList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Similar Properties -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-magic text-primary"></i> Similar Properties
+                    </h5>
+                    
+                    <form id="recommendForm">
+                        <div class="mb-3">
+                            <label class="form-label">Select Property</label>
+                            <select class="form-select" id="apartment" name="apartment" required>
+                                <option value="">Choose Property</option>
+                                {% for apartment in apartments %}
+                                <option value="{{ apartment }}">{{ apartment }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-star"></i> Get Recommendations
+                        </button>
+                    </form>
+
+                    <div id="recommendLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Finding similar properties...</p>
+                    </div>
+
+                    <div id="recommendResults" class="mt-4" style="display: none;">
+                        <h6>Recommended Properties:</h6>
+                        <div id="recommendList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="fas fa-info-circle text-primary"></i> How It Works
+            </h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Location Search</h6>
+                    <p>Find all properties within a specific radius from your chosen location.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Similar Properties</h6>
+                    <p>Get AI-powered recommendations based on property similarities.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Location search
+    $('#locationForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $('#locationLoading').show();
+        $('#locationResults').hide();
+        
+        $.ajax({
+            url: '/recommend',
+            type: 'POST',
+            data: {
+                action: 'search_location',
+                location: $('#location').val(),
+                radius: $('#radius').val()
+            },
+            success: function(response) {
+                $('#locationLoading').hide();
+                
+                var html = '';
+                if (response.results && response.results.length > 0) {
+                    response.results.forEach(function(item) {
+                        html += '<div class="alert alert-info mb-2">';
+                        html += '<div class="d-flex justify-content-between">';
+                        html += '<strong>' + item.name + '</strong>';
+                        html += '<span class="badge bg-primary">' + item.distance + ' km</span>';
+                        html += '</div></div>';
+                    });
+                } else {
+                    html = '<div class="alert alert-warning">No properties found within radius.</div>';
+                }
+                
+                $('#locationList').html(html);
+                $('#locationResults').show();
+            },
+            error: function() {
+                $('#locationLoading').hide();
+                alert('Search failed. Please try again.');
+            }
+        });
+    });
+
+    // Recommendations
+    $('#recommendForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        $('#recommendLoading').show();
+        $('#recommendResults').hide();
+        
+        $.ajax({
+            url: '/recommend',
+            type: 'POST',
+            data: {
+                action: 'recommend_apartments',
+                apartment: $('#apartment').val()
+            },
+            success: function(response) {
+                $('#recommendLoading').hide();
+                
+                var html = '';
+                if (response.recommendations && response.recommendations.length > 0) {
+                    response.recommendations.forEach(function(item) {
+                        var score = Math.round(item.SimilarityScore * 100);
+                        var badgeClass = score >= 80 ? 'bg-success' : score >= 60 ? 'bg-warning' : 'bg-secondary';
+                        
+                        html += '<div class="alert alert-light mb-2">';
+                        html += '<div class="d-flex justify-content-between align-items-center">';
+                        html += '<strong>' + item.PropertyName + '</strong>';
+                        html += '<span class="badge ' + badgeClass + '">' + score + '%</span>';
+                        html += '</div></div>';
+                    });
+                } else {
+                    html = '<div class="alert alert-warning">No recommendations found.</div>';
+                }
+                
+                $('#recommendList').html(html);
+                $('#recommendResults').show();
+            },
+            error: function() {
+                $('#recommendLoading').hide();
+                alert('Recommendation failed. Please try again.');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

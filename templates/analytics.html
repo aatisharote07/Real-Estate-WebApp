@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block page_title %}Analytics Dashboard - Gurgaon Real Estate Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-bar"></i> Real Estate Analytics Dashboard</h2>
+                        <p class="mb-0">Comprehensive market insights and trends</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sector Price per Sqft Geomap -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-map-marked-alt"></i> Sector Price per Sqft Geomap</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="geomap" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Wordcloud -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-cloud"></i> Features Wordcloud</h4>
+                    </div>
+                    <div class="card-body text-center">
+                        <img src="data:image/png;base64,{{ wordcloud }}" class="img-fluid" alt="Features Wordcloud" style="max-height: 400px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Area vs Price Analysis -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-chart-scatter"></i> Area vs Price Analysis</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="propertyTypeSelect" class="form-label">Select Property Type:</label>
+                                <select class="form-select" id="propertyTypeSelect">
+                                    {% for ptype in property_types %}
+                                    <option value="{{ ptype }}" {% if loop.first %}selected{% endif %}>{{ ptype.title() }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div id="areaVsPrice" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BHK Analysis -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-chart-pie"></i> BHK Distribution</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="sectorSelect" class="form-label">Select Sector:</label>
+                            <select class="form-select" id="sectorSelect">
+                                {% for sector in sectors %}
+                                <option value="{{ sector }}" {% if loop.first %}selected{% endif %}>{{ sector.title() }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="bhkPie" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-box"></i> BHK Price Range</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="bhkBox" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Distribution -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-chart-area"></i> Price Distribution by Property Type</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="priceDistribution" class="plot-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Plot the initial geomap
+    var geomapData = {{ geomap|safe }};
+    Plotly.newPlot('geomap', geomapData.data, geomapData.layout, {responsive: true});
+
+    // Load initial charts
+    loadAreaVsPrice();
+    loadBHKPie();
+    loadBHKBox();
+    loadPriceDistribution();
+
+    // Event listeners for dynamic updates
+    $('#propertyTypeSelect').change(function() {
+        loadAreaVsPrice();
+    });
+
+    $('#sectorSelect').change(function() {
+        loadBHKPie();
+    });
+
+    function loadAreaVsPrice() {
+        var propertyType = $('#propertyTypeSelect').val();
+        $.get('/get_area_vs_price', {property_type: propertyType}, function(data) {
+            var plotData = JSON.parse(data);
+            Plotly.newPlot('areaVsPrice', plotData.data, plotData.layout, {responsive: true});
+        });
+    }
+
+    function loadBHKPie() {
+        var sector = $('#sectorSelect').val();
+        $.get('/get_bhk_pie', {sector: sector}, function(data) {
+            var plotData = JSON.parse(data);
+            Plotly.newPlot('bhkPie', plotData.data, plotData.layout, {responsive: true});
+        });
+    }
+
+    function loadBHKBox() {
+        $.get('/get_bhk_price_box', function(data) {
+            var plotData = JSON.parse(data);
+            Plotly.newPlot('bhkBox', plotData.data, plotData.layout, {responsive: true});
+        });
+    }
+
+    function loadPriceDistribution() {
+        $.get('/get_price_distribution', function(data) {
+            var plotData = JSON.parse(data);
+            Plotly.newPlot('priceDistribution', plotData.data, plotData.layout, {responsive: true});
+        });
+    }
+});
+</script>
+{% endblock %}
