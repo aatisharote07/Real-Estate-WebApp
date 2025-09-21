@@ -20,104 +20,36 @@ app = Flask(__name__)
 def load_data():
     global df, pipeline, new_df, feature_text, location_df, cosine_sim1, cosine_sim2, cosine_sim3
     
-    # Price prediction data - use smaller sample for Vercel
-    try:
-        with open('df.pkl','rb') as file:
-            df = pickle.load(file)
-        # Sample the data to reduce size
-        if len(df) > 1000:
-            df = df.sample(n=1000, random_state=42)
-    except FileNotFoundError:
-        print("df.pkl not found, creating sample data...")
-        df = pd.DataFrame({
-            'property_type': ['flat', 'house'],
-            'sector': ['Sector 1', 'Sector 2'],
-            'bedRoom': [2, 3],
-            'bathroom': [2, 3],
-            'balcony': [1, 2],
-            'agePossession': ['New Property', 'Under Construction'],
-            'built_up_area': [1000, 1500],
-            'servant room': [0, 1],
-            'store room': [0, 1],
-            'furnishing_type': ['Semi-Furnished', 'Furnished'],
-            'luxury_category': ['Luxury', 'Ultra Luxury'],
-            'floor_category': ['Ground Floor', 'High Floor']
-        })
+    # Price prediction data
+    with open('df.pkl','rb') as file:
+        df = pickle.load(file)
     
-    # Create a simple pipeline for Vercel
-    print("Creating lightweight pipeline for Vercel deployment...")
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.linear_model import LinearRegression
-    from sklearn.pipeline import Pipeline
+    with open('pipeline.pkl','rb') as file:
+        pipeline = pickle.load(file)
     
-    pipeline = Pipeline([
-        ('scaler', StandardScaler()),
-        ('regressor', LinearRegression())
-    ])
+    # Analytics data
+    new_df = pd.read_csv('data_viz1.csv')
     
-    # Analytics data - use smaller sample
-    try:
-        new_df = pd.read_csv('data_viz1.csv')
-        # Sample the data to reduce size
-        if len(new_df) > 500:
-            new_df = new_df.sample(n=500, random_state=42)
-    except FileNotFoundError:
-        print("data_viz1.csv not found, creating sample data...")
-        new_df = pd.DataFrame({
-            'sector': ['Sector 1', 'Sector 2', 'Sector 3'] * 50,
-            'price': np.random.normal(5000000, 2000000, 150),
-            'price_per_sqft': np.random.normal(5000, 1000, 150),
-            'built_up_area': np.random.normal(1200, 300, 150),
-            'latitude': np.random.normal(28.6, 0.1, 150),
-            'longitude': np.random.normal(77.2, 0.1, 150),
-            'property_type': ['flat', 'house'] * 75,
-            'bedRoom': np.random.choice([1, 2, 3, 4], 150)
-        })
+    with open('feature_text.pkl', 'rb') as file:
+        feature_text = pickle.load(file)
     
     # Clean data
     for col in ['price', 'price_per_sqft', 'built_up_area', 'latitude', 'longitude']:
         new_df[col] = pd.to_numeric(new_df[col], errors='coerce')
     new_df = new_df.dropna(subset=['latitude', 'longitude'])
     
-    # Create sample feature text
-    feature_text = "real estate property flat house luxury modern amenities location sector price area bedroom bathroom balcony"
+    # Recommendation data
+    with open('location_distance.pkl','rb') as file:
+        location_df = pickle.load(file)
     
-    # Create sample recommendation data
-    try:
-        with open('location_distance.pkl','rb') as file:
-            location_df = pickle.load(file)
-        # Sample to reduce size
-        if location_df.shape[0] > 50:
-            location_df = location_df.sample(n=50, random_state=42)
-    except FileNotFoundError:
-        print("location_distance.pkl not found, creating sample data...")
-        locations = [f'Location {i}' for i in range(1, 21)]
-        properties = [f'Property {i}' for i in range(1, 21)]
-        location_df = pd.DataFrame(
-            np.random.uniform(1000, 10000, (20, 20)),
-            index=properties,
-            columns=locations
-        )
-    
-    # Create sample similarity matrices
-    try:
-        with open('cosine_sim1.pkl','rb') as file:
-            cosine_sim1 = pickle.load(file)
-        with open('cosine_sim2.pkl','rb') as file:
-            cosine_sim2 = pickle.load(file)
-        with open('cosine_sim3.pkl','rb') as file:
-            cosine_sim3 = pickle.load(file)
-        # Sample to reduce size
-        if cosine_sim1.shape[0] > 50:
-            cosine_sim1 = cosine_sim1[:50, :50]
-            cosine_sim2 = cosine_sim2[:50, :50]
-            cosine_sim3 = cosine_sim3[:50, :50]
-    except FileNotFoundError:
-        print("Similarity matrices not found, creating sample data...")
-        n_properties = min(20, len(location_df))
-        cosine_sim1 = np.random.random((n_properties, n_properties))
-        cosine_sim2 = np.random.random((n_properties, n_properties))
-        cosine_sim3 = np.random.random((n_properties, n_properties))
+    with open('cosine_sim1.pkl','rb') as file:
+        cosine_sim1 = pickle.load(file)
+        
+    with open('cosine_sim2.pkl','rb') as file:
+        cosine_sim2 = pickle.load(file)
+        
+    with open('cosine_sim3.pkl','rb') as file:
+        cosine_sim3 = pickle.load(file)
 
 load_data()
 
@@ -179,28 +111,16 @@ def analytics():
     # Convert numpy arrays to lists for JSON serialization
     geomap_json = json.dumps(geomap_fig, cls=plotly.utils.PlotlyJSONEncoder)
     
-    # Create wordcloud with fallback
-    try:
-        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(feature_text)
-        img = io.BytesIO()
-        plt.figure(figsize=(10, 5))
-        plt.imshow(wordcloud, interpolation='bilinear')
-        plt.axis("off")
-        plt.savefig(img, format='png', bbox_inches='tight')
-        img.seek(0)
-        wordcloud_url = base64.b64encode(img.getvalue()).decode()
-        plt.close()
-    except Exception as e:
-        print(f"WordCloud error: {e}")
-        # Create a simple text-based fallback
-        img = io.BytesIO()
-        plt.figure(figsize=(10, 5))
-        plt.text(0.5, 0.5, 'WordCloud unavailable', ha='center', va='center', fontsize=20)
-        plt.axis("off")
-        plt.savefig(img, format='png', bbox_inches='tight')
-        img.seek(0)
-        wordcloud_url = base64.b64encode(img.getvalue()).decode()
-        plt.close()
+    # Create wordcloud
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(feature_text)
+    img = io.BytesIO()
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
+    plt.savefig(img, format='png', bbox_inches='tight')
+    img.seek(0)
+    wordcloud_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
     
     return render_template('analytics.html', 
                          geomap=geomap_json, 
