@@ -102,7 +102,6 @@ The application will be available at `http://localhost:5000`
 ## Browser Compatibility
 
 - Chrome/Chromium (recommended)
-- Firefox
 - Safari
 - Edge
 
