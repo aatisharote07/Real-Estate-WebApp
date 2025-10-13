@@ -1,4 +1,4 @@
-# Gurgaon Real Estate Analytics Flask App
+# Real Estate Analytics Flask App
 
 A modern, responsive Flask web application for real estate analytics in Gurgaon with price prediction, market analysis, and property recommendations.
 
