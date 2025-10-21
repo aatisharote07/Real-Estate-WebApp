@@ -110,4 +110,4 @@ The application will be available at `http://localhost:5000`
 - All file paths are kept exactly as they were in your original Streamlit app
 - The app loads all models and data on startup for better performance
 - Interactive charts update dynamically without page refresh
-- Responsive design ensures great experience on all devices
+ 
