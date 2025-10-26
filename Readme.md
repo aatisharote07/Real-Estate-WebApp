@@ -43,7 +43,7 @@ Ensure you have the following files in their original paths (as used in your Str
 - `C:\Users\Admin\OneDrive\Documents\Real Estate Analytics Web App\real-estate-app\pages\df.pkl`
 - `C:\Users\Admin\OneDrive\Documents\Real Estate Analytics Web App\real-estate-app\pages\pipeline.pkl`
 - `C:\Users\Admin\OneDrive\Documents\Real Estate Analytics Web App\real-estate-app\datasets\data_viz1.csv`
-- `C:\Users\Admin\OneDrive\Documents\Real Estate Analytics Web App\real-estate-app\datasets\location_distance.pkl`
+ 
 - `C:\Users\Admin\OneDrive\Documents\Real Estate Analytics Web App\real-estate-app\datasets\cosine_sim1.pkl`
 - `C:\Users\Admin\OneDrive\Documents\Real Estate Analytics Web App\real-estate-app\datasets\cosine_sim2.pkl`
 - `C:\Users\Admin\OneDrive\Documents\Real Estate Analytics Web App\real-estate-app\datasets\cosine_sim3.pkl`
