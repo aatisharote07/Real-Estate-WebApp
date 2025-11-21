@@ -94,7 +94,6 @@ The application will be available at `http://localhost:5000`
 - **Backend**: Flask (Python)
 - **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5
 - **Charts**: Plotly.js for interactive visualizations
-- **Icons**: Font Awesome
 - **ML Libraries**: scikit-learn, pandas, numpy
 - **Visualization**: matplotlib, seaborn, wordcloud
 
