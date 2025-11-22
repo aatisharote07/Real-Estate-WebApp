@@ -7,7 +7,7 @@ A modern, responsive Flask web application for real estate analytics in Gurgaon 
 - **Price Predictor**: ML-powered property price estimation
 - **Analytics Dashboard**: Interactive charts and maps for market insights
 - **Property Recommendations**: Location-based search and similarity recommendations
-- **Modern UI**: Responsive design with Bootstrap 5 and custom styling
+ 
 
 ## Setup Instructions
 
