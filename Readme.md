@@ -101,7 +101,7 @@ The application will be available at `http://localhost:5000`
 
 - Chrome/Chromium (recommended)
 - Safari
-- Edge
+- Brave
 
 ## Notes
 
