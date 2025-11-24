@@ -87,7 +87,7 @@ The application will be available at `http://localhost:5000`
 - **Responsive Design**: Works perfectly on mobile and desktop
 - **Interactive Elements**: AJAX forms, loading spinners, smooth transitions
 - **Professional Layout**: Card-based design with consistent styling
-- **Better UX**: Form validation, error handling, and user feedback
+ 
 
 ## Technologies Used
 
